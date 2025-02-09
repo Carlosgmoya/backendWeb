@@ -1,0 +1,7 @@
+uvicorn
+fastApi
+pymongo[srv]
+dropbox
+requests
+python-multipart
+mangum
