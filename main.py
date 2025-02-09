@@ -31,7 +31,9 @@ path = "/parcial"
 # Desde el directorio de este archivo: 2 maneras de ejecutar el modulo:
 #   -ejecutar de manera local -> python -m uvicorn main:api --reload --port 8001
 
-
+@api.get("/")
+async def root():
+    return {"message": "API funcionando en Vercel!"}
 
 @api.get(path + "/pelis")
 async def getAllPelis():
