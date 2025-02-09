@@ -4,5 +4,3 @@ pymongo[srv]
 dropbox
 requests
 python-multipart
-mangum
-bson
