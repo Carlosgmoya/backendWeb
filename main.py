@@ -15,9 +15,9 @@ from mangum import Mangum
 
 
 
-api = FastAPI()
+app = FastAPI()
 # Habilitar CORS
-api.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Cambia esto a la URL de tu frontend en producción
     allow_credentials=True,
@@ -31,17 +31,17 @@ path = "/parcial"
 # Desde el directorio de este archivo: 2 maneras de ejecutar el modulo:
 #   -ejecutar de manera local -> python -m uvicorn main:api --reload --port 8001
 
-@api.get("/")
+@app.get("/")
 async def root():
     return {"message": "API funcionando en Vercel!"}
 
-@api.get(path + "/pelis")
+@app.get(path + "/pelis")
 async def getAllPelis():
     return await peliculasAPI.getTodasPeliculas()
 
 
 
-@api.get(path + "/pelis/{nombre}")
+@app.get(path + "/pelis/{nombre}")
 async def getPelicula(nombre: str):
     peliculaJSON = await peliculasAPI.getPeli(nombre)
     if peliculaJSON is None:
@@ -50,7 +50,7 @@ async def getPelicula(nombre: str):
     return peliculaJSON
     
     
-@api.post(path + "/pelis")
+@app.post(path + "/pelis")
 async def crearPelicula(titulo: str = Form(...), imagen: UploadFile = File(...)):
     peliculasJSON = await peliculasAPI.getPeli(titulo)
     carpeta_destino = Path("imagenes_temporales")
@@ -71,7 +71,7 @@ async def crearPelicula(titulo: str = Form(...), imagen: UploadFile = File(...))
 
 
 
-@api.put(path + "/pelis/{pelisID}")
+@app.put(path + "/pelis/{pelisID}")
 async def actualizarPelicula(request: Request, pelisID: str):
     try:
         ObjID = ObjectId(pelisID)
@@ -91,7 +91,7 @@ async def actualizarPelicula(request: Request, pelisID: str):
     
     return "Pelicula actualizada con éxito"
 
-@api.delete(path + "/pelis/{pelisID}")
+@app.delete(path + "/pelis/{pelisID}")
 async def eliminarPelicula(pelisID: str):
     try:
         obj_id = ObjectId(pelisID)
@@ -104,13 +104,13 @@ async def eliminarPelicula(pelisID: str):
 
     return "Pelicula eliminada con éxito"
 
-@api.get(path + "/salas")
+@app.get(path + "/salas")
 async def getAllSalas():
     return await salasAPI.getTodasSalas()
 
 
 
-@api.get(path + "/salas/{nombre}")
+@app.get(path + "/salas/{nombre}")
 async def getSala(nombre: str):
     salaJSON = await salasAPI.getSala(nombre)
     if salaJSON is None:
@@ -119,7 +119,7 @@ async def getSala(nombre: str):
     return salaJSON
     
     
-@api.post("/parcial/salas")
+@app.post("/parcial/salas")
 async def crearSala(request: Request):
     data = await request.json()  # Recibir JSON del frontend
     nombre = data.get("nombre")
@@ -136,7 +136,7 @@ async def crearSala(request: Request):
     else:
         return {"error": "Ya existe una sala con ese nombre"}
 
-@api.put(path + "/salas/{salasID}")
+@app.put(path + "/salas/{salasID}")
 async def actualizarSala(request: Request, salasID: str):
     try:
         ObjID = ObjectId(salasID)
@@ -158,7 +158,7 @@ async def actualizarSala(request: Request, salasID: str):
     return "Sala actualizada con éxito"
 
 
-@api.delete(path + "/salas/{salaID}")
+@app.delete(path + "/salas/{salaID}")
 async def eliminarSala(salaID: str):
     try:
         obj_id = ObjectId(salaID)
@@ -171,7 +171,7 @@ async def eliminarSala(salaID: str):
 
     return "Sala eliminada con éxito"
 
-@api.post(path + "/asignar")
+@app.post(path + "/asignar")
 async def asignarProyeccion(request: Request):
     data = await request.json()
     sala = data.get("sala")
@@ -194,7 +194,7 @@ async def asignarProyeccion(request: Request):
     res = await proyeccionesAPI.asignar(salaId, peliculaId, fechaHora)
     return {"mensaje": "Proyección asignada con éxito", "resultado": res}
 
-@api.get(path + "/buscar/{peliculaID}")
+@app.get(path + "/buscar/{peliculaID}")
 async def buscarProyeccion(peliculaID: str):
     try:
         ObjID = ObjectId(peliculaID)
@@ -205,7 +205,7 @@ async def buscarProyeccion(peliculaID: str):
     
     return proyecciones
 
-@api.get(path + "/cartelera/{salaID}")
+@app.get(path + "/cartelera/{salaID}")
 async def cartelera(salaID : str):
     try:
         ObjID = ObjectId(salaID)
@@ -215,4 +215,4 @@ async def cartelera(salaID : str):
     cartelera = await proyeccionesAPI.cartelera(ObjID)
     
     return cartelera
-handler = Mangum(api)
+handler = Mangum(app)
