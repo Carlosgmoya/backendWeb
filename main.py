@@ -44,10 +44,10 @@ async def getMensaje(cabeceraID: str):
         ObjID = ObjectId(cabeceraID)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    mensaje = await mensajeAPI.getMensajeCabecera(ObjID)
+    mensaje = await mensajeAPI.getMensajeCabecera(cabeceraID)
 
 
-    cuerpo_id = mensaje.get("cuerpo", {}).get("$oid")
+    cuerpo_id = mensaje.get("cuerpo", {})
     cuerpo_obj = ObjectId(cuerpo_id)
     cuerpo = await cuerpoAPI.getCuerpoPorId(cuerpo_obj)
     cabecera = await cabeceraAPI.getCabeceraPorId(ObjID)

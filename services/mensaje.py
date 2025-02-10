@@ -19,7 +19,7 @@ async def getMensaje(mensajeId: ObjectId):
 
     return None if mensajeDoc is None else json.loads(json_util.dumps(mensajeDoc))
 
-async def getMensajeCabecera(cabeceraId: ObjectId):
+async def getMensajeCabecera(cabeceraId: str):
     mensajeDoc = mensajeBD.find_one({ "cabecera" : cabeceraId })
 
     return None if mensajeDoc is None else json.loads(json_util.dumps(mensajeDoc))
