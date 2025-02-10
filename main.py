@@ -10,8 +10,6 @@ from bson.objectid import ObjectId
 import shutil
 import os
 from pathlib import Path
-from mangum import Mangum
-
 
 
 
@@ -215,4 +213,3 @@ async def cartelera(salaID : str):
     cartelera = await proyeccionesAPI.cartelera(ObjID)
     
     return cartelera
-handler = Mangum(app)
