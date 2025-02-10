@@ -1,6 +1,6 @@
-from services import salas as salasAPI
-from services import peliculas as peliculasAPI
-from services import proyecciones as proyeccionesAPI
+from services import cabecera as cabeceraAPI
+from services import cuerpo as cuerpoAPI
+from services import mensaje as mensajeAPI
 from services import imagenes as imagenes
 
 from fastapi import FastAPI, Request, HTTPException, Query, UploadFile, File, Form
@@ -31,14 +31,40 @@ path = "/parcial"
 
 @app.get("/")
 async def root():
-    return {"message": "API funcionando en Vercel!"}
-
-@app.get(path + "/pelis")
-async def getAllPelis():
-    return await peliculasAPI.getTodasPeliculas()
+    return {"message": "API funcionando en la nube!"}
 
 
+@app.get(path + "/cabecera/{autor}")
+async def getCabecera(autor: str):
+    return await cabeceraAPI.getCabeceraPorAutor(autor)
 
+@app.get(path + "mensaje/{mensajeID}")
+async def getMensaje(mensajeID: str):
+    try:
+        ObjID = ObjectId(mensajeID)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
+    mensaje = await mensajeAPI.getMensaje(ObjID)
+
+
+    cabecera_id = mensaje.get("cabecera", {}).get("$oid")
+    cuerpo_id = mensaje.get("cuerpo", {}).get("$oid")
+    cabecera_obj = ObjectId(cabecera_id)
+    cuerpo_obj = ObjectId(cuerpo_id)
+    cuerpo = await cuerpoAPI.getCuerpoPorId(cuerpo_obj)
+    cabecera = await cabeceraAPI.getCabeceraPorId(cabecera_obj)
+
+    return {"cabecera": cuerpo, "cuerpo": cabecera}
+
+
+@app.post(path + "/mensaje")
+async def crearMensaje(de: str = Form(...), para: str = Form(...), asunto: str = Form(...), contenido: str = Form(...)):
+    cabecera = await cabeceraAPI.crearCabecera(de, para, asunto)
+    cuerpo = await cuerpoAPI.crearCuerpo(contenido, "Sin adjunto", "token")
+
+    return await mensajeAPI.crearMensaje(cabecera["_id"], cuerpo["_id"])
+
+'''
 @app.get(path + "/pelis/{nombre}")
 async def getPelicula(nombre: str):
     peliculaJSON = await peliculasAPI.getPeli(nombre)
@@ -104,13 +130,13 @@ async def eliminarPelicula(pelisID: str):
 
 @app.get(path + "/salas")
 async def getAllSalas():
-    return await salasAPI.getTodasSalas()
+    return await cabeceraAPI.getTodasSalas()
 
 
 
 @app.get(path + "/salas/{nombre}")
 async def getSala(nombre: str):
-    salaJSON = await salasAPI.getSala(nombre)
+    salaJSON = await cabeceraAPI.getSala(nombre)
     if salaJSON is None:
         raise HTTPException(status_code=404, detail="Sala no encontrado")
     
@@ -127,10 +153,10 @@ async def crearSala(request: Request):
     if not nombre or not propietario or not coordenadas:
         return {"error": "Faltan datos"}
 
-    salaJSON = await salasAPI.getSala(nombre)
+    salaJSON = await cabeceraAPI.getSala(nombre)
 
     if salaJSON is None:
-        return await salasAPI.crearSala(nombre, propietario, coordenadas)
+        return await cabeceraAPI.crearSala(nombre, propietario, coordenadas)
     else:
         return {"error": "Ya existe una sala con ese nombre"}
 
@@ -147,7 +173,7 @@ async def actualizarSala(request: Request, salasID: str):
     propietario = data.get("propietario")
     coordenadas = data.get("coordenadas")
     
-    result = await salasAPI.actualizarSala(ObjID, nombre, propietario, coordenadas)
+    result = await cabeceraAPI.actualizarSala(ObjID, nombre, propietario, coordenadas)
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Sala no encontrada")
     if result.modified_count == 0:
@@ -163,53 +189,9 @@ async def eliminarSala(salaID: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail="Formato de ID inválido")
     
-    result = await salasAPI.eliminarSala(obj_id)
+    result = await cabeceraAPI.eliminarSala(obj_id)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Sala no encontrada")
 
     return "Sala eliminada con éxito"
-
-@app.post(path + "/asignar")
-async def asignarProyeccion(request: Request):
-    data = await request.json()
-    sala = data.get("sala")
-    pelicula = data.get("pelicula")
-    fechaHora = data.get("fechaHora")
-    if not sala or not pelicula or not fechaHora:
-       raise HTTPException(status_code=400, detail="Faltan datos")
-    
-    salaId = await salasAPI.getSalaID(sala)
-    peliculaId = await peliculasAPI.getPeliID(pelicula)
-
-    print(peliculaId)
-    print(salaId)
-    try:
-        salaId = ObjectId(salaId)
-        peliculaId = ObjectId(peliculaId)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    
-    res = await proyeccionesAPI.asignar(salaId, peliculaId, fechaHora)
-    return {"mensaje": "Proyección asignada con éxito", "resultado": res}
-
-@app.get(path + "/buscar/{peliculaID}")
-async def buscarProyeccion(peliculaID: str):
-    try:
-        ObjID = ObjectId(peliculaID)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    
-    proyecciones = await proyeccionesAPI.proyeccionesPelicula(ObjID)
-    
-    return proyecciones
-
-@app.get(path + "/cartelera/{salaID}")
-async def cartelera(salaID : str):
-    try:
-        ObjID = ObjectId(salaID)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    
-    cartelera = await proyeccionesAPI.cartelera(ObjID)
-    
-    return cartelera
+    '''

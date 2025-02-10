@@ -17,6 +17,6 @@ except Exception as e:
 
 database = client["Final2425"]
 
-peliculasBD = database["Peliculas"]
-salasBD = database["Salas"]
-proyeccionesBD = database["Proyecciones"]
+cuerpoBD = database["Cuerpo"]
+cabeceraBD = database["Cabecera"]
+mensajeBD = database["Mensaje"]
