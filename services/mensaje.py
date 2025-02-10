@@ -19,6 +19,11 @@ async def getMensaje(mensajeId: ObjectId):
 
     return None if mensajeDoc is None else json.loads(json_util.dumps(mensajeDoc))
 
+async def getMensajeCabecera(cabeceraId: ObjectId):
+    mensajeDoc = mensajeBD.find_one({ "cabecera" : cabeceraId })
+
+    return None if mensajeDoc is None else json.loads(json_util.dumps(mensajeDoc))
+
 async def crearMensaje(cabecera: ObjectId, cuerpo: ObjectId):
     nuevoMensaje = {
         "cabecera": cabecera,

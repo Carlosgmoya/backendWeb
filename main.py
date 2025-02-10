@@ -38,21 +38,19 @@ async def root():
 async def getCabecera(autor: str):
     return await cabeceraAPI.getCabeceraPorAutor(autor)
 
-@app.get(path + "mensaje/{mensajeID}")
-async def getMensaje(mensajeID: str):
+@app.get(path + "/mensaje/{cabeceraID}")
+async def getMensaje(cabeceraID: str):
     try:
-        ObjID = ObjectId(mensajeID)
+        ObjID = ObjectId(cabeceraID)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid ObjectId format")
-    mensaje = await mensajeAPI.getMensaje(ObjID)
+    mensaje = await mensajeAPI.getMensajeCabecera(ObjID)
 
 
-    cabecera_id = mensaje.get("cabecera", {}).get("$oid")
     cuerpo_id = mensaje.get("cuerpo", {}).get("$oid")
-    cabecera_obj = ObjectId(cabecera_id)
     cuerpo_obj = ObjectId(cuerpo_id)
     cuerpo = await cuerpoAPI.getCuerpoPorId(cuerpo_obj)
-    cabecera = await cabeceraAPI.getCabeceraPorId(cabecera_obj)
+    cabecera = await cabeceraAPI.getCabeceraPorId(ObjID)
 
     return {"cabecera": cuerpo, "cuerpo": cabecera}
 
