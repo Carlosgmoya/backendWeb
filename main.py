@@ -56,9 +56,22 @@ async def getMensaje(cabeceraID: str):
 
 
 @app.post(path + "/mensaje")
-async def crearMensaje(de: str = Form(...), para: str = Form(...), asunto: str = Form(...), contenido: str = Form(...)):
+async def crearMensaje(de: str = Form(...), para: str = Form(...), asunto: str = Form(...), contenido: str = Form(...), imagen: UploadFile = File(...)):
+    carpeta_destino = Path("imagenes_temporales")
+    carpeta_destino.mkdir(parents=True, exist_ok=True)
+    rutaLocal = carpeta_destino / imagen.filename
+    with rutaLocal.open("wb") as buffer:
+        shutil.copyfileobj(imagen.file, buffer)
+
+    if rutaLocal:  # Si el usuario seleccionó un archivo
+        rutaRemota = f"/{imagen.filename}"  # Asignar un nombre de archivo en Dropbox
+        imagenes.subirImagenDropbox(rutaLocal, rutaRemota)
+        enlace = imagenes.obtenerEnlaceImagen(rutaRemota)
+    else:
+        print("No se seleccionó ningún archivo.")
+    os.remove(rutaLocal)
     cabecera = await cabeceraAPI.crearCabecera(de, para, asunto)
-    cuerpo = await cuerpoAPI.crearCuerpo(contenido, "Sin adjunto", "token")
+    cuerpo = await cuerpoAPI.crearCuerpo(contenido, enlace, "token")
 
     return await mensajeAPI.crearMensaje(cabecera["_id"], cuerpo["_id"])
 

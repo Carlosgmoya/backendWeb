@@ -5,7 +5,7 @@ from typing import List
 import json
 from datetime import datetime
 from pymongo import DESCENDING
-
+from fastapi.responses import JSONResponse
 
 # conexion al servidor MongoDB
 
@@ -25,12 +25,15 @@ async def getMensajeCabecera(cabeceraId: ObjectId):
     return None if mensajeDoc is None else json.loads(json_util.dumps(mensajeDoc))
 
 async def crearMensaje(cabecera: ObjectId, cuerpo: ObjectId):
+    from fastapi.encoders import jsonable_encoder
+
+async def crearMensaje(cabecera: ObjectId, cuerpo: ObjectId):
     nuevoMensaje = {
-        "cabecera": cabecera,
-        "cuerpo": cuerpo
+        "cabecera": str(cabecera),  # Convertir ObjectId a str
+        "cuerpo": str(cuerpo)       # Convertir ObjectId a str
     }
     
     result = mensajeBD.insert_one(nuevoMensaje)
-    # devolvemos la nueva wiki al cliente, incluyendo la ID
-    nuevoMensaje["_id"] = str(result.inserted_id)
-    return nuevoMensaje
+    nuevoMensaje["_id"] = str(result.inserted_id)  # Asegúrate de que el _id también sea un str
+    
+    return JSONResponse(content=nuevoMensaje)
